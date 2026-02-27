@@ -1,5 +1,4 @@
 import Foundation
-import GRDB
 import Testing
 @testable import TimeTrackerApp
 
@@ -7,7 +6,7 @@ import Testing
 struct TimerServiceTests {
 
     @Test func startSwitchAndRecoveryLifecycle() throws {
-        let dbQueue = try makeInMemoryQueue()
+        let dbQueue = try TestDatabase.makeInMemoryQueue()
         let categoryRepo = GRDBCategoryRepository(dbQueue: dbQueue)
         let projectRepo = GRDBProjectRepository(dbQueue: dbQueue)
         let taskRepo = GRDBTaskRepository(dbQueue: dbQueue)
@@ -53,9 +52,4 @@ struct TimerServiceTests {
         #expect(recoveredEntry.source == .recovered)
     }
 
-    private func makeInMemoryQueue() throws -> DatabaseQueue {
-        let dbQueue = try DatabaseQueue(path: ":memory:")
-        try Migrations.makeMigrator().migrate(dbQueue)
-        return dbQueue
-    }
 }

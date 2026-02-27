@@ -5,11 +5,12 @@ import Testing
 struct DataLayerDebugUsageTests {
 
     @Test func createCoreHierarchyWithTagsAndTimeEntry() throws {
-        let categoryRepo = GRDBCategoryRepository()
-        let projectRepo = GRDBProjectRepository()
-        let taskRepo = GRDBTaskRepository()
-        let tagRepo = GRDBTagRepository()
-        let entryRepo = GRDBTimeEntryRepository()
+        let dbQueue = try TestDatabase.makeInMemoryQueue()
+        let categoryRepo = GRDBCategoryRepository(dbQueue: dbQueue)
+        let projectRepo = GRDBProjectRepository(dbQueue: dbQueue)
+        let taskRepo = GRDBTaskRepository(dbQueue: dbQueue)
+        let tagRepo = GRDBTagRepository(dbQueue: dbQueue)
+        let entryRepo = GRDBTimeEntryRepository(dbQueue: dbQueue)
 
         let token = Int64(Date().timeIntervalSince1970)
         let category = try categoryRepo.create(name: "debug-cat-\(token)", sortOrder: 0)
