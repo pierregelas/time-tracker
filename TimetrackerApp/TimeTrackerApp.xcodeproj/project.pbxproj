@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		8F1EE2D62F51BD3D000D9C4E /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = 8F1EE2D52F51BD3D000D9C4E /* GRDB */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		8F1EE2B82F51BAAF000D9C4E /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -52,6 +56,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8F1EE2D62F51BD3D000D9C4E /* GRDB in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -112,6 +117,7 @@
 			);
 			name = TimeTrackerApp;
 			packageProductDependencies = (
+				8F1EE2D52F51BD3D000D9C4E /* GRDB */,
 			);
 			productName = TimeTrackerApp;
 			productReference = 8F1EE2AA2F51BAAE000D9C4E /* TimeTrackerApp.app */;
@@ -195,6 +201,9 @@
 			);
 			mainGroup = 8F1EE2A12F51BAAE000D9C4E;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				8F1EE2D42F51BD3D000D9C4E /* XCRemoteSwiftPackageReference "GRDB" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 8F1EE2AB2F51BAAE000D9C4E /* Products */;
 			projectDirPath = "";
@@ -563,6 +572,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		8F1EE2D42F51BD3D000D9C4E /* XCRemoteSwiftPackageReference "GRDB" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/groue/GRDB.swift";
+			requirement = {
+				branch = master;
+				kind = branch;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		8F1EE2D52F51BD3D000D9C4E /* GRDB */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8F1EE2D42F51BD3D000D9C4E /* XCRemoteSwiftPackageReference "GRDB" */;
+			productName = GRDB;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 8F1EE2A22F51BAAE000D9C4E /* Project object */;
 }
