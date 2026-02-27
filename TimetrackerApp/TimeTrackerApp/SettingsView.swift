@@ -13,38 +13,44 @@ struct SettingsView: View {
         NavigationStack {
             Form {
                 Section("Working Hours") {
-                    ForEach(viewModel.orderedWeekdays, id: \.self) { weekday in
-                        HStack {
-                            Text(viewModel.label(for: weekday))
-                            Spacer()
-                            TextField("Minutes", text: viewModel.bindingForWorkingMinutes(weekday: weekday))
+                    Grid(alignment: .leading, horizontalSpacing: 16, verticalSpacing: 10) {
+                        ForEach(viewModel.orderedWeekdays, id: \.self) { weekday in
+                            GridRow {
+                                Text(viewModel.label(for: weekday))
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                TextField("Minutes", text: viewModel.bindingForWorkingMinutes(weekday: weekday))
+                                    .multilineTextAlignment(.trailing)
+                                    .textFieldStyle(.roundedBorder)
+                                    .frame(width: 120)
+                            }
+                        }
+                    }
+                }
+
+                Section("Break rules") {
+                    Grid(alignment: .leading, horizontalSpacing: 16, verticalSpacing: 10) {
+                        GridRow {
+                            Text("Min gap (minutes)")
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            TextField("0", text: $viewModel.minGapMinutesInput)
+                                .multilineTextAlignment(.trailing)
+                                .textFieldStyle(.roundedBorder)
+                                .frame(width: 120)
+                        }
+
+                        GridRow {
+                            Text("Max gap (minutes)")
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            TextField("0", text: $viewModel.maxGapMinutesInput)
                                 .multilineTextAlignment(.trailing)
                                 .textFieldStyle(.roundedBorder)
                                 .frame(width: 120)
                         }
                     }
                 }
-
-                Section("Break rules") {
-                    HStack {
-                        Text("Min gap (minutes)")
-                        Spacer()
-                        TextField("0", text: $viewModel.minGapMinutesInput)
-                            .multilineTextAlignment(.trailing)
-                            .textFieldStyle(.roundedBorder)
-                            .frame(width: 120)
-                    }
-
-                    HStack {
-                        Text("Max gap (minutes)")
-                        Spacer()
-                        TextField("0", text: $viewModel.maxGapMinutesInput)
-                            .multilineTextAlignment(.trailing)
-                            .textFieldStyle(.roundedBorder)
-                            .frame(width: 120)
-                    }
-                }
             }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
             .navigationTitle("Settings")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -67,7 +73,7 @@ struct SettingsView: View {
                 viewModel.load()
             }
         }
-        .frame(minWidth: 420, minHeight: 380)
+        .frame(minWidth: 520, minHeight: 420)
     }
 }
 
