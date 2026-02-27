@@ -22,12 +22,12 @@ struct TimeTrackerAppApp: App {
             ContentView()
                 .environment(timerService)
                 .onReceive(NotificationCenter.default.publisher(for: NSApplication.willTerminateNotification)) { _ in
-                    try? timerService.stop()
+                    _ = try? timerService.stop()
                 }
         }
         .onChange(of: scenePhase) { _, newPhase in
             if newPhase != .active {
-                try? timerService.stop()
+                _ = try? timerService.stop()
             }
         }
     }
