@@ -44,4 +44,41 @@ struct DataLayerDebugUsageTests {
         #expect(created.id != nil)
         #expect(dayEntries.contains { $0.id == created.id && $0.note == "debug note" })
     }
+
+    @Test func debugSeedAndResetPopulateExpectedAcceptanceData() throws {
+        let dbQueue = try TestDatabase.makeInMemoryQueue()
+        let service = DebugDataService(dbQueue: dbQueue)
+
+        try service.seedAcceptanceTestData(now: Date(timeIntervalSince1970: 1_700_000_000))
+
+        try dbQueue.read { db in
+            let categories = try String.fetchAll(db, sql: "SELECT name FROM category ORDER BY sort_order")
+            #expect(categories == ["Client", "Perso"])
+
+            let projects = try String.fetchAll(db, sql: "SELECT name FROM project ORDER BY name")
+            #expect(projects == ["Projet A", "Projet B"])
+
+            let tasks = try String.fetchAll(db, sql: "SELECT name FROM task ORDER BY name")
+            #expect(tasks == ["Admin", "Derush", "Montage", "Motion", "Running", "Sport", "Timeline"])
+
+            let montageCount = try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM task_tag tt INNER JOIN tag t ON t.id = tt.tag_id WHERE t.name = 'montage'")
+            let motionCount = try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM task_tag tt INNER JOIN tag t ON t.id = tt.tag_id WHERE t.name = 'motion'")
+            #expect(montageCount == 3)
+            #expect(motionCount == 1)
+
+            let entryCount = try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM time_entry")
+            #expect(entryCount == 3)
+        }
+
+        try service.resetAllData()
+
+        try dbQueue.read { db in
+            #expect(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM category") == 0)
+            #expect(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM project") == 0)
+            #expect(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM task") == 0)
+            #expect(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM tag") == 0)
+            #expect(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM task_tag") == 0)
+            #expect(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM time_entry") == 0)
+        }
+    }
 }

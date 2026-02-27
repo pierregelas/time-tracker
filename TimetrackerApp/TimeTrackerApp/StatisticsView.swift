@@ -54,6 +54,9 @@ struct StatisticsView: View {
             .onReceive(NotificationCenter.default.publisher(for: .settingsDidChange)) { _ in
                 viewModel.reload()
             }
+            .onReceive(NotificationCenter.default.publisher(for: .appDataDidChange)) { _ in
+                viewModel.reload()
+            }
         }
     }
 

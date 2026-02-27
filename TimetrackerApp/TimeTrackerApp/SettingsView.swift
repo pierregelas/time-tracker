@@ -1,8 +1,10 @@
 import Observation
 import SwiftUI
+import GRDB
 
 extension Notification.Name {
     static let settingsDidChange = Notification.Name("settingsDidChange")
+    static let appDataDidChange = Notification.Name("appDataDidChange")
 }
 
 struct SettingsView: View {
@@ -69,6 +71,28 @@ struct SettingsView: View {
                         }
                         .padding(.top, 6)
                     }
+
+                    #if DEBUG
+                    GroupBox("Debug") {
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text("Development helpers for acceptance test scenarios.")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+
+                            HStack {
+                                Button("Seed Test Data") {
+                                    viewModel.seedTestData()
+                                }
+
+                                Button("Reset Data", role: .destructive) {
+                                    viewModel.resetData()
+                                }
+                            }
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.top, 6)
+                    }
+                    #endif
                 }
                 .padding(20)
             }
@@ -111,6 +135,10 @@ final class SettingsViewModel {
 
     var showError = false
     var errorMessage = ""
+
+    #if DEBUG
+    private let debugDataService = DebugDataService()
+    #endif
 
     func load() {
         do {
@@ -198,9 +226,138 @@ final class SettingsViewModel {
         errorMessage = message
         showError = true
     }
+
+    #if DEBUG
+    func seedTestData() {
+        do {
+            try debugDataService.seedAcceptanceTestData()
+            NotificationCenter.default.post(name: .appDataDidChange, object: nil)
+        } catch {
+            setError(error.localizedDescription)
+        }
+    }
+
+    func resetData() {
+        do {
+            try debugDataService.resetAllData()
+            NotificationCenter.default.post(name: .appDataDidChange, object: nil)
+        } catch {
+            setError(error.localizedDescription)
+        }
+    }
+    #endif
 }
 
 struct ValidationError: LocalizedError {
     let message: String
     var errorDescription: String? { message }
 }
+
+#if DEBUG
+final class DebugDataService {
+    private let dbQueue: any DatabaseWriter
+
+    init(dbQueue: any DatabaseWriter = AppDatabase.shared.dbQueue) {
+        self.dbQueue = dbQueue
+    }
+
+    func resetAllData() throws {
+        try dbQueue.write { db in
+            try db.execute(sql: "DELETE FROM time_entry")
+            try db.execute(sql: "DELETE FROM task_tag")
+            try db.execute(sql: "DELETE FROM tag")
+            try db.execute(sql: "DELETE FROM task")
+            try db.execute(sql: "DELETE FROM project")
+            try db.execute(sql: "DELETE FROM category")
+        }
+    }
+
+    func seedAcceptanceTestData(now: Date = Date()) throws {
+        try resetAllData()
+
+        let nowEpoch = Int64(now.timeIntervalSince1970)
+        let calendar = Calendar.current
+        let dayStart = calendar.startOfDay(for: now)
+
+        func localTimestamp(hour: Int, minute: Int) -> Int64 {
+            let value = calendar.date(bySettingHour: hour, minute: minute, second: 0, of: dayStart) ?? dayStart
+            return Int64(value.timeIntervalSince1970)
+        }
+
+        try dbQueue.write { db in
+            let clientCategoryId = try insertCategory(db: db, name: "Client", sortOrder: 0, now: nowEpoch)
+            let persoCategoryId = try insertCategory(db: db, name: "Perso", sortOrder: 1, now: nowEpoch)
+
+            let projetAId = try insertProject(db: db, categoryId: clientCategoryId, name: "Projet A", sortOrder: 0, now: nowEpoch)
+            let projetBId = try insertProject(db: db, categoryId: persoCategoryId, name: "Projet B", sortOrder: 0, now: nowEpoch)
+
+            let montageTaskId = try insertTask(db: db, projectId: projetAId, parentTaskId: nil, name: "Montage", sortOrder: 0, now: nowEpoch)
+            let derushTaskId = try insertTask(db: db, projectId: projetAId, parentTaskId: montageTaskId, name: "Derush", sortOrder: 0, now: nowEpoch)
+            let timelineTaskId = try insertTask(db: db, projectId: projetAId, parentTaskId: montageTaskId, name: "Timeline", sortOrder: 1, now: nowEpoch)
+            let motionTaskId = try insertTask(db: db, projectId: projetAId, parentTaskId: nil, name: "Motion", sortOrder: 1, now: nowEpoch)
+
+            _ = try insertTask(db: db, projectId: projetBId, parentTaskId: nil, name: "Admin", sortOrder: 0, now: nowEpoch)
+            let sportTaskId = try insertTask(db: db, projectId: projetBId, parentTaskId: nil, name: "Sport", sortOrder: 1, now: nowEpoch)
+            let runningTaskId = try insertTask(db: db, projectId: projetBId, parentTaskId: sportTaskId, name: "Running", sortOrder: 0, now: nowEpoch)
+
+            let montageTagId = try insertTag(db: db, name: "montage", now: nowEpoch)
+            let motionTagId = try insertTag(db: db, name: "motion", now: nowEpoch)
+
+            try insertTaskTag(db: db, taskId: montageTaskId, tagId: montageTagId, now: nowEpoch)
+            try insertTaskTag(db: db, taskId: derushTaskId, tagId: montageTagId, now: nowEpoch)
+            try insertTaskTag(db: db, taskId: timelineTaskId, tagId: montageTagId, now: nowEpoch)
+            try insertTaskTag(db: db, taskId: motionTaskId, tagId: motionTagId, now: nowEpoch)
+
+            try insertTimeEntry(db: db, taskId: motionTaskId, startAt: localTimestamp(hour: 9, minute: 0), endAt: localTimestamp(hour: 10, minute: 0), source: "manual", now: nowEpoch)
+            try insertTimeEntry(db: db, taskId: derushTaskId, startAt: localTimestamp(hour: 10, minute: 15), endAt: localTimestamp(hour: 11, minute: 0), source: "manual", now: nowEpoch)
+            try insertTimeEntry(db: db, taskId: runningTaskId, startAt: localTimestamp(hour: 11, minute: 15), endAt: localTimestamp(hour: 12, minute: 0), source: "manual", now: nowEpoch)
+        }
+    }
+
+    private func insertCategory(db: Database, name: String, sortOrder: Int, now: Int64) throws -> Int64 {
+        try db.execute(
+            sql: "INSERT INTO category (name, sort_order, created_at, updated_at) VALUES (?, ?, ?, ?)",
+            arguments: [name, sortOrder, now, now]
+        )
+        return db.lastInsertedRowID
+    }
+
+    private func insertProject(db: Database, categoryId: Int64, name: String, sortOrder: Int, now: Int64) throws -> Int64 {
+        try db.execute(
+            sql: "INSERT INTO project (category_id, name, color, sort_order, is_archived, created_at, updated_at) VALUES (?, ?, NULL, ?, 0, ?, ?)",
+            arguments: [categoryId, name, sortOrder, now, now]
+        )
+        return db.lastInsertedRowID
+    }
+
+    private func insertTask(db: Database, projectId: Int64, parentTaskId: Int64?, name: String, sortOrder: Int, now: Int64) throws -> Int64 {
+        try db.execute(
+            sql: "INSERT INTO task (project_id, parent_task_id, name, sort_order, is_archived, created_at, updated_at) VALUES (?, ?, ?, ?, 0, ?, ?)",
+            arguments: [projectId, parentTaskId, name, sortOrder, now, now]
+        )
+        return db.lastInsertedRowID
+    }
+
+    private func insertTag(db: Database, name: String, now: Int64) throws -> Int64 {
+        try db.execute(
+            sql: "INSERT INTO tag (name, created_at, updated_at) VALUES (?, ?, ?)",
+            arguments: [name, now, now]
+        )
+        return db.lastInsertedRowID
+    }
+
+    private func insertTaskTag(db: Database, taskId: Int64, tagId: Int64, now: Int64) throws {
+        try db.execute(
+            sql: "INSERT INTO task_tag (task_id, tag_id, created_at) VALUES (?, ?, ?)",
+            arguments: [taskId, tagId, now]
+        )
+    }
+
+    private func insertTimeEntry(db: Database, taskId: Int64, startAt: Int64, endAt: Int64, source: String, now: Int64) throws {
+        try db.execute(
+            sql: "INSERT INTO time_entry (task_id, start_at, end_at, note, source, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            arguments: [taskId, startAt, endAt, "Seeded debug entry", source, now, now]
+        )
+    }
+}
+#endif
