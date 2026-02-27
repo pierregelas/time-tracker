@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct ContentView: View {
+    @State private var showSettings = false
+
     var body: some View {
         TabView {
             ProjectsView()
@@ -11,6 +13,18 @@ struct ContentView: View {
 
             StatisticsView()
                 .tabItem { Label("Statistics", systemImage: "chart.bar") }
+        }
+        .toolbar {
+            ToolbarItem(placement: .automatic) {
+                Button {
+                    showSettings = true
+                } label: {
+                    Label("Settings", systemImage: "gearshape")
+                }
+            }
+        }
+        .sheet(isPresented: $showSettings) {
+            SettingsView()
         }
         .frame(minWidth: 980, minHeight: 640)
     }
