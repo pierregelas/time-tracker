@@ -26,6 +26,7 @@ protocol TaskRepository {
 protocol TimeEntryRepository {
     func createTimerEntry(taskId: Int64, startAt: Int64) throws -> TimeEntry
     func stopRunningEntry(endAt: Int64) throws -> TimeEntry?
+    func recoverRunningEntry(endAt: Int64) throws -> TimeEntry?
     func fetchDayEntries(dateLocal: Date) throws -> [TimeEntry]
     func createManualEntry(taskId: Int64, startAt: Int64, endAt: Int64, note: String?) throws -> TimeEntry
     func updateEntry(_ entry: TimeEntry) throws -> TimeEntry
@@ -245,6 +246,21 @@ final class GRDBTimeEntryRepository: TimeEntryRepository {
                 return nil
             }
             running.endAt = endAt
+            running.updatedAt = Int64(Date().timeIntervalSince1970)
+            try running.update(db)
+            return running
+        }
+    }
+
+    func recoverRunningEntry(endAt: Int64) throws -> TimeEntry? {
+        try dbQueue.write { db in
+            guard var running = try TimeEntry
+                .filter(TimeEntry.Columns.endAt == nil)
+                .fetchOne(db) else {
+                return nil
+            }
+            running.endAt = endAt
+            running.source = .recovered
             running.updatedAt = Int64(Date().timeIntervalSince1970)
             try running.update(db)
             return running
