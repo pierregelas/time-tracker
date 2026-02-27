@@ -74,6 +74,7 @@ struct Task: Codable, FetchableRecord, MutablePersistableRecord, Identifiable, E
     var projectId: Int64
     var parentTaskId: Int64?
     var name: String
+    var note: String?
     var sortOrder: Int
     var isArchived: Bool
     var createdAt: Int64
@@ -84,6 +85,7 @@ struct Task: Codable, FetchableRecord, MutablePersistableRecord, Identifiable, E
         case projectId = "project_id"
         case parentTaskId = "parent_task_id"
         case name
+        case note
         case sortOrder = "sort_order"
         case isArchived = "is_archived"
         case createdAt = "created_at"
@@ -91,7 +93,7 @@ struct Task: Codable, FetchableRecord, MutablePersistableRecord, Identifiable, E
     }
 
     enum Columns: String, ColumnExpression {
-        case id, name
+        case id, name, note
         case projectId = "project_id"
         case parentTaskId = "parent_task_id"
         case sortOrder = "sort_order"

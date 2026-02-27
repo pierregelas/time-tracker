@@ -177,6 +177,12 @@ Projet B :
 **Given** target du jour = 0  
 **Then** missing time = 0 (ou caché), delta = worked time (informative).
 
+### NOTE-01 Notes task/sub-task persistantes
+
+**When** j’édite une tâche (ou sous-tâche), je saisis une note libre puis je sauvegarde  
+**And** je relance l’app et je rouvre la même tâche  
+**Then** la note est toujours présente et identique (persistance DB OK).
+
 ---
 ## 7) Tests Tags
 

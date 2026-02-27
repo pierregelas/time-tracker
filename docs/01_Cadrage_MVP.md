@@ -33,6 +33,7 @@ Permettre de :
 **Données / organisation**
 
 - CRUD : catégories, projets, tâches, sous-tâches.
+- Notes sur Task/Sub-task (texte libre, persistant, éditable).
 - Déplacement simple : changer le parent (ex : tâche → autre projet) si faisable sans casse.
 
 **Time tracking**
