@@ -6,8 +6,7 @@ struct ContentView: View {
             ProjectsView()
                 .tabItem { Label("Projects", systemImage: "folder") }
 
-            Text("Times (coming soon)")
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            TimesView()
                 .tabItem { Label("Times", systemImage: "clock") }
 
             Text("Statistics (coming soon)")
