@@ -18,7 +18,7 @@ protocol ProjectRepository {
 
 protocol TaskRepository {
     func listByProject(projectId: Int64, includeArchived: Bool) throws -> [Task]
-    func create(projectId: Int64, parentTaskId: Int64?, name: String, sortOrder: Int) throws -> Task
+    func create(projectId: Int64, parentTaskId: Int64?, name: String, note: String?, sortOrder: Int) throws -> Task
     func update(_ task: Task) throws -> Task
     func delete(id: Int64) throws
 }
@@ -180,13 +180,14 @@ final class GRDBTaskRepository: TaskRepository {
         }
     }
 
-    func create(projectId: Int64, parentTaskId: Int64?, name: String, sortOrder: Int = 0) throws -> Task {
+    func create(projectId: Int64, parentTaskId: Int64?, name: String, note: String? = nil, sortOrder: Int = 0) throws -> Task {
         let now = Int64(Date().timeIntervalSince1970)
         var task = Task(
             id: nil,
             projectId: projectId,
             parentTaskId: parentTaskId,
             name: name,
+            note: note,
             sortOrder: sortOrder,
             isArchived: false,
             createdAt: now,

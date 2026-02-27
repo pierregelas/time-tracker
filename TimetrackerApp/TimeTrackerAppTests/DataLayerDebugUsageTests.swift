@@ -45,6 +45,35 @@ struct DataLayerDebugUsageTests {
         #expect(dayEntries.contains { $0.id == created.id && $0.note == "debug note" })
     }
 
+
+    @Test func taskNotesArePersistedOnCreateAndFetch() throws {
+        let dbQueue = try TestDatabase.makeInMemoryQueue()
+        let categoryRepo = GRDBCategoryRepository(dbQueue: dbQueue)
+        let projectRepo = GRDBProjectRepository(dbQueue: dbQueue)
+        let taskRepo = GRDBTaskRepository(dbQueue: dbQueue)
+
+        let category = try categoryRepo.create(name: "notes-cat", sortOrder: 0)
+        let project = try projectRepo.create(
+            categoryId: try #require(category.id),
+            name: "notes-proj",
+            color: nil,
+            sortOrder: 0
+        )
+
+        let savedNote = "Préparer réunion client et points de suivi"
+        let task = try taskRepo.create(
+            projectId: try #require(project.id),
+            parentTaskId: nil,
+            name: "notes-task",
+            note: savedNote,
+            sortOrder: 0
+        )
+
+        let fetched = try taskRepo.listByProject(projectId: try #require(project.id), includeArchived: true)
+        let fetchedTask = try #require(fetched.first { $0.id == task.id })
+        #expect(fetchedTask.note == savedNote)
+    }
+
     @Test func debugSeedAndResetPopulateExpectedAcceptanceData() throws {
         let dbQueue = try TestDatabase.makeInMemoryQueue()
         let service = DebugDataService(dbQueue: dbQueue)
