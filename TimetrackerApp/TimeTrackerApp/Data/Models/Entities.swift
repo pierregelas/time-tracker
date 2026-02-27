@@ -1,7 +1,14 @@
 import Foundation
 import GRDB
 
-struct Category: Codable, FetchableRecord, MutablePersistableRecord, Identifiable, Equatable {
+protocol SnakeCaseColumnMapped: FetchableRecord, PersistableRecord, Codable {}
+
+extension SnakeCaseColumnMapped {
+    static var databaseColumnEncodingStrategy: DatabaseColumnEncodingStrategy { .convertToSnakeCase }
+    static var databaseColumnDecodingStrategy: DatabaseColumnDecodingStrategy { .convertFromSnakeCase }
+}
+
+struct Category: Codable, SnakeCaseColumnMapped, MutablePersistableRecord, Identifiable, Equatable {
     static let databaseTableName = "category"
 
     var id: Int64?
@@ -22,7 +29,7 @@ struct Category: Codable, FetchableRecord, MutablePersistableRecord, Identifiabl
     }
 }
 
-struct Project: Codable, FetchableRecord, MutablePersistableRecord, Identifiable, Equatable {
+struct Project: Codable, SnakeCaseColumnMapped, MutablePersistableRecord, Identifiable, Equatable {
     static let databaseTableName = "project"
 
     var id: Int64?
@@ -48,7 +55,7 @@ struct Project: Codable, FetchableRecord, MutablePersistableRecord, Identifiable
     }
 }
 
-struct Task: Codable, FetchableRecord, MutablePersistableRecord, Identifiable, Equatable {
+struct Task: Codable, SnakeCaseColumnMapped, MutablePersistableRecord, Identifiable, Equatable {
     static let databaseTableName = "task"
 
     var id: Int64?
@@ -81,7 +88,7 @@ enum TimeEntrySource: String, Codable {
     case recovered
 }
 
-struct TimeEntry: Codable, FetchableRecord, MutablePersistableRecord, Identifiable, Equatable {
+struct TimeEntry: Codable, SnakeCaseColumnMapped, MutablePersistableRecord, Identifiable, Equatable {
     static let databaseTableName = "time_entry"
 
     var id: Int64?
@@ -107,7 +114,7 @@ struct TimeEntry: Codable, FetchableRecord, MutablePersistableRecord, Identifiab
     }
 }
 
-struct WorkingHour: Codable, FetchableRecord, PersistableRecord, Equatable {
+struct WorkingHour: Codable, SnakeCaseColumnMapped, PersistableRecord, Equatable {
     static let databaseTableName = "working_hours"
 
     var weekday: Int
@@ -119,7 +126,7 @@ struct WorkingHour: Codable, FetchableRecord, PersistableRecord, Equatable {
     }
 }
 
-struct BreakRules: Codable, FetchableRecord, PersistableRecord, Equatable {
+struct BreakRules: Codable, SnakeCaseColumnMapped, PersistableRecord, Equatable {
     static let databaseTableName = "break_rules"
 
     var id: Int = 1
@@ -133,7 +140,7 @@ struct BreakRules: Codable, FetchableRecord, PersistableRecord, Equatable {
     }
 }
 
-struct Tag: Codable, FetchableRecord, MutablePersistableRecord, Identifiable, Equatable {
+struct Tag: Codable, SnakeCaseColumnMapped, MutablePersistableRecord, Identifiable, Equatable {
     static let databaseTableName = "tag"
 
     var id: Int64?
@@ -152,7 +159,7 @@ struct Tag: Codable, FetchableRecord, MutablePersistableRecord, Identifiable, Eq
     }
 }
 
-struct TaskTag: Codable, FetchableRecord, PersistableRecord, Equatable {
+struct TaskTag: Codable, SnakeCaseColumnMapped, PersistableRecord, Equatable {
     static let databaseTableName = "task_tag"
 
     var taskId: Int64
