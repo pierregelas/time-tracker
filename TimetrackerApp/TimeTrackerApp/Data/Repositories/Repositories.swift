@@ -28,6 +28,7 @@ protocol TimeEntryRepository {
     func stopRunningEntry(endAt: Int64) throws -> TimeEntry?
     func recoverRunningEntry(endAt: Int64) throws -> TimeEntry?
     func fetchDayEntries(dateLocal: Date) throws -> [TimeEntry]
+    func fetchEntries(in startUTC: Int64, _ endUTC: Int64) throws -> [TimeEntry]
     func createManualEntry(taskId: Int64, startAt: Int64, endAt: Int64, note: String?) throws -> TimeEntry
     func updateEntry(_ entry: TimeEntry) throws -> TimeEntry
     func deleteEntry(id: Int64) throws
@@ -279,6 +280,15 @@ final class GRDBTimeEntryRepository: TimeEntryRepository {
         return try dbQueue.read { db in
             try TimeEntry
                 .filter(sql: "start_at < ? AND COALESCE(end_at, ?) > ?", arguments: [endEpoch, Int64(Date().timeIntervalSince1970), startEpoch])
+                .order(TimeEntry.Columns.startAt)
+                .fetchAll(db)
+        }
+    }
+
+    func fetchEntries(in startUTC: Int64, _ endUTC: Int64) throws -> [TimeEntry] {
+        try dbQueue.read { db in
+            try TimeEntry
+                .filter(sql: "start_at < ? AND (end_at IS NULL OR end_at > ?)", arguments: [endUTC, startUTC])
                 .order(TimeEntry.Columns.startAt)
                 .fetchAll(db)
         }
