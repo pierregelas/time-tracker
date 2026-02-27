@@ -9,8 +9,7 @@ struct ContentView: View {
             TimesView()
                 .tabItem { Label("Times", systemImage: "clock") }
 
-            Text("Statistics (coming soon)")
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            StatisticsView()
                 .tabItem { Label("Statistics", systemImage: "chart.bar") }
         }
         .frame(minWidth: 980, minHeight: 640)
