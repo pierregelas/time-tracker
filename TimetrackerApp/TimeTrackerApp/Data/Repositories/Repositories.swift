@@ -59,9 +59,9 @@ enum RepositoryValidationError: Error {
 }
 
 final class GRDBCategoryRepository: CategoryRepository {
-    private let dbQueue: DatabaseQueue
+    private let dbQueue: any DatabaseWriter
 
-    init(dbQueue: DatabaseQueue = AppDatabase.shared.dbQueue) {
+    init(dbQueue: any DatabaseWriter = AppDatabase.shared.dbQueue) {
         self.dbQueue = dbQueue
     }
 
@@ -99,9 +99,9 @@ final class GRDBCategoryRepository: CategoryRepository {
 }
 
 final class GRDBProjectRepository: ProjectRepository {
-    private let dbQueue: DatabaseQueue
+    private let dbQueue: any DatabaseWriter
 
-    init(dbQueue: DatabaseQueue = AppDatabase.shared.dbQueue) {
+    init(dbQueue: any DatabaseWriter = AppDatabase.shared.dbQueue) {
         self.dbQueue = dbQueue
     }
 
@@ -161,9 +161,9 @@ final class GRDBProjectRepository: ProjectRepository {
 }
 
 final class GRDBTaskRepository: TaskRepository {
-    private let dbQueue: DatabaseQueue
+    private let dbQueue: any DatabaseWriter
 
-    init(dbQueue: DatabaseQueue = AppDatabase.shared.dbQueue) {
+    init(dbQueue: any DatabaseWriter = AppDatabase.shared.dbQueue) {
         self.dbQueue = dbQueue
     }
 
@@ -214,9 +214,9 @@ final class GRDBTaskRepository: TaskRepository {
 }
 
 final class GRDBTimeEntryRepository: TimeEntryRepository {
-    private let dbQueue: DatabaseQueue
+    private let dbQueue: any DatabaseWriter
 
-    init(dbQueue: DatabaseQueue = AppDatabase.shared.dbQueue) {
+    init(dbQueue: any DatabaseWriter = AppDatabase.shared.dbQueue) {
         self.dbQueue = dbQueue
     }
 
@@ -355,9 +355,9 @@ final class GRDBTimeEntryRepository: TimeEntryRepository {
 }
 
 final class GRDBSettingsRepository: SettingsRepository {
-    private let dbQueue: DatabaseQueue
+    private let dbQueue: any DatabaseWriter
 
-    init(dbQueue: DatabaseQueue = AppDatabase.shared.dbQueue) {
+    init(dbQueue: any DatabaseWriter = AppDatabase.shared.dbQueue) {
         self.dbQueue = dbQueue
     }
 
@@ -405,10 +405,10 @@ final class GRDBSettingsRepository: SettingsRepository {
 }
 
 final class GRDBTagRepository: TagRepository {
-    private let dbQueue: DatabaseQueue
+    private let dbQueue: any DatabaseWriter
     private let validationRegex = try! NSRegularExpression(pattern: "^[A-Za-z0-9_-]+$")
 
-    init(dbQueue: DatabaseQueue = AppDatabase.shared.dbQueue) {
+    init(dbQueue: any DatabaseWriter = AppDatabase.shared.dbQueue) {
         self.dbQueue = dbQueue
     }
 
