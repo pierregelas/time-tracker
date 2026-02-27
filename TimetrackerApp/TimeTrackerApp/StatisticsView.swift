@@ -51,6 +51,9 @@ struct StatisticsView: View {
             .onChange(of: viewModel.selectedPeriod) { _, _ in
                 viewModel.reload()
             }
+            .onReceive(NotificationCenter.default.publisher(for: .settingsDidChange)) { _ in
+                viewModel.reload()
+            }
         }
     }
 
