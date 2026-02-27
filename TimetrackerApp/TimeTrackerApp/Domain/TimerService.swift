@@ -1,7 +1,6 @@
 import Foundation
 import Observation
 
-@MainActor
 @Observable
 final class TimerService {
     private let timeEntryRepository: TimeEntryRepository
@@ -18,9 +17,9 @@ final class TimerService {
         self.nowProvider = nowProvider
 
         if recoverOnInit {
-            try? recoverIfNeeded()
+            _ = try? recoverIfNeeded()
         } else {
-            try? refreshCurrentRunningEntry()
+            _ = try? refreshCurrentRunningEntry()
         }
     }
 
