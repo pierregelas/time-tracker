@@ -1,21 +1,20 @@
-//
-//  ContentView.swift
-//  TimeTrackerApp
-//
-//  Created by Pierre on 2026-02-27.
-//
-
 import SwiftUI
 
 struct ContentView: View {
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        TabView {
+            ProjectsView()
+                .tabItem { Label("Projects", systemImage: "folder") }
+
+            Text("Times (coming soon)")
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .tabItem { Label("Times", systemImage: "clock") }
+
+            Text("Statistics (coming soon)")
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .tabItem { Label("Statistics", systemImage: "chart.bar") }
         }
-        .padding()
+        .frame(minWidth: 980, minHeight: 640)
     }
 }
 
