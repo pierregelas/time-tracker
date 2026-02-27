@@ -9,6 +9,10 @@ import SwiftUI
 
 @main
 struct TimeTrackerAppApp: App {
+    init() {
+        _ = AppDatabase.shared
+    }
+
     var body: some Scene {
         WindowGroup {
             ContentView()

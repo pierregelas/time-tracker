@@ -80,10 +80,10 @@
 		8F1EE2A12F51BAAE000D9C4E = {
 			isa = PBXGroup;
 			children = (
-				8F1EE2AC2F51BAAE000D9C4E /* TimeTrackerApp */,
 				8F1EE2BA2F51BAAF000D9C4E /* TimeTrackerAppTests */,
 				8F1EE2C42F51BAAF000D9C4E /* TimeTrackerAppUITests */,
 				8F1EE2AB2F51BAAE000D9C4E /* Products */,
+				8F1EE2AC2F51BAAE000D9C4E /* TimeTrackerApp */,
 			);
 			sourceTree = "<group>";
 		};
