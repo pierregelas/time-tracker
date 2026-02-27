@@ -489,7 +489,6 @@ struct TaskEditSheet: View {
                     ForEach(projects) { p in Text(p.name).tag(p.id ?? 0) }
                 }
                 TextField("Tags (comma or space separated)", text: $tagsRaw)
-                    .textInputAutocapitalization(.never)
             }
             .navigationTitle(title)
             .onAppear {

@@ -85,13 +85,11 @@ enum TimeCalculations {
         }
 
         let projected = entries
-            .map { entry -> BreakInterval? in
+            .compactMap { entry -> BreakInterval? in
                 let effectiveEnd = entry.endAt ?? now
                 let start = max(entry.startAt, dayInterval.startUTC)
                 let end = min(effectiveEnd, dayInterval.endUTC)
-                guard end > start else {
-                    return nil
-                }
+                guard end > start else { return nil }
                 return BreakInterval(startAt: start, endAt: end)
             }
             .sorted { lhs, rhs in

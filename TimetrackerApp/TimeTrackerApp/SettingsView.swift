@@ -11,46 +11,67 @@ struct SettingsView: View {
 
     var body: some View {
         NavigationStack {
-            Form {
-                Section("Working Hours") {
-                    Grid(alignment: .leading, horizontalSpacing: 16, verticalSpacing: 10) {
-                        ForEach(viewModel.orderedWeekdays, id: \.self) { weekday in
+            ScrollView {
+                VStack(alignment: .leading, spacing: 18) {
+
+                    GroupBox("Working Hours") {
+                        Grid(alignment: .leading, horizontalSpacing: 16, verticalSpacing: 10) {
+                            // Optional header row
                             GridRow {
-                                Text(viewModel.label(for: weekday))
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                TextField("Minutes", text: viewModel.bindingForWorkingMinutes(weekday: weekday))
+                                Text("Day")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                    .frame(width: 60, alignment: .leading)
+
+                                Text("Minutes")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                    .frame(width: 120, alignment: .trailing)
+                            }
+                            .padding(.bottom, 4)
+
+                            ForEach(viewModel.orderedWeekdays, id: \.self) { weekday in
+                                GridRow {
+                                    Text(viewModel.label(for: weekday))
+                                        .frame(width: 60, alignment: .leading)
+
+                                    TextField("0", text: viewModel.bindingForWorkingMinutes(weekday: weekday))
+                                        .multilineTextAlignment(.trailing)
+                                        .textFieldStyle(.roundedBorder)
+                                        .frame(width: 120)
+                                }
+                            }
+                        }
+                        .padding(.top, 6)
+                    }
+
+                    GroupBox("Break rules") {
+                        Grid(alignment: .leading, horizontalSpacing: 16, verticalSpacing: 10) {
+                            GridRow {
+                                Text("Min gap (minutes)")
+                                    .frame(width: 160, alignment: .leading)
+
+                                TextField("0", text: $viewModel.minGapMinutesInput)
+                                    .multilineTextAlignment(.trailing)
+                                    .textFieldStyle(.roundedBorder)
+                                    .frame(width: 120)
+                            }
+
+                            GridRow {
+                                Text("Max gap (minutes)")
+                                    .frame(width: 160, alignment: .leading)
+
+                                TextField("0", text: $viewModel.maxGapMinutesInput)
                                     .multilineTextAlignment(.trailing)
                                     .textFieldStyle(.roundedBorder)
                                     .frame(width: 120)
                             }
                         }
+                        .padding(.top, 6)
                     }
                 }
-
-                Section("Break rules") {
-                    Grid(alignment: .leading, horizontalSpacing: 16, verticalSpacing: 10) {
-                        GridRow {
-                            Text("Min gap (minutes)")
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                            TextField("0", text: $viewModel.minGapMinutesInput)
-                                .multilineTextAlignment(.trailing)
-                                .textFieldStyle(.roundedBorder)
-                                .frame(width: 120)
-                        }
-
-                        GridRow {
-                            Text("Max gap (minutes)")
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                            TextField("0", text: $viewModel.maxGapMinutesInput)
-                                .multilineTextAlignment(.trailing)
-                                .textFieldStyle(.roundedBorder)
-                                .frame(width: 120)
-                        }
-                    }
-                }
+                .padding(20)
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
             .navigationTitle("Settings")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -73,7 +94,8 @@ struct SettingsView: View {
                 viewModel.load()
             }
         }
-        .frame(minWidth: 520, minHeight: 420)
+        // Fix a stable sheet size to avoid macOS Form/Grid weird measuring + clipping
+        .frame(width: 640, height: 460)
     }
 }
 
@@ -180,6 +202,5 @@ final class SettingsViewModel {
 
 struct ValidationError: LocalizedError {
     let message: String
-
     var errorDescription: String? { message }
 }
