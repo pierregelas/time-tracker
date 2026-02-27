@@ -191,6 +191,7 @@ final class ProjectsViewModel {
         var projectId: Int64
         var parentTaskId: Int64?
         var tagsRaw: String
+        var note: String
     }
 
     enum Editor: Identifiable {
@@ -344,12 +345,13 @@ final class ProjectsViewModel {
                 task.name = payload.name
                 task.projectId = payload.projectId
                 task.parentTaskId = payload.parentTaskId
+                task.note = payload.note.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : payload.note
                 _ = try taskRepository.update(task)
                 if let id = task.id {
                     try tagRepository.setTagsForTask(taskId: id, parseTags(payload.tagsRaw))
                 }
             } else {
-                let created = try taskRepository.create(projectId: payload.projectId, parentTaskId: payload.parentTaskId, name: payload.name, sortOrder: 0)
+                let created = try taskRepository.create(projectId: payload.projectId, parentTaskId: payload.parentTaskId, name: payload.name, note: payload.note.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : payload.note, sortOrder: 0)
                 if let id = created.id {
                     try tagRepository.setTagsForTask(taskId: id, parseTags(payload.tagsRaw))
                 }
@@ -481,6 +483,7 @@ struct TaskEditSheet: View {
     @State private var name = ""
     @State private var selectedProjectId: Int64 = 0
     @State private var tagsRaw = ""
+    @State private var note = ""
 
     private let tagRepo: TagRepository = GRDBTagRepository()
 
@@ -492,6 +495,11 @@ struct TaskEditSheet: View {
                     ForEach(projects) { p in Text(p.name).tag(p.id ?? 0) }
                 }
                 TextField("Tags (comma or space separated)", text: $tagsRaw)
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Notes")
+                    TextEditor(text: $note)
+                        .frame(minHeight: 120)
+                }
             }
             .navigationTitle(title)
             .onAppear {
@@ -501,12 +509,13 @@ struct TaskEditSheet: View {
                    let tags = try? tagRepo.getTagsForTask(taskId: id).map(\.name) {
                     tagsRaw = tags.joined(separator: ", ")
                 }
+                note = task?.note ?? ""
             }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
-                        onSave(.init(task: task, name: name, projectId: selectedProjectId, parentTaskId: parentTaskId, tagsRaw: tagsRaw))
+                        onSave(.init(task: task, name: name, projectId: selectedProjectId, parentTaskId: parentTaskId, tagsRaw: tagsRaw, note: note))
                         dismiss()
                     }
                     .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || selectedProjectId == 0)

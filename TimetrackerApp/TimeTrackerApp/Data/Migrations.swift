@@ -144,6 +144,10 @@ enum Migrations {
             """)
         }
 
+        migrator.registerMigration("v3_task_notes") { db in
+            try db.execute(sql: "ALTER TABLE task ADD COLUMN note TEXT;")
+        }
+
         return migrator
     }
 }

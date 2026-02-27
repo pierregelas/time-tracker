@@ -286,3 +286,33 @@ version: 2
 **Definition of Done :**
 
 - Tous les scénarios **P/T/D/B/W/L/TAG** du doc passent.
+
+---
+
+## Prompt 11 — Task Notes (schema + models + repos + UI + tests)
+
+**Objectif :** ajouter des notes libres et persistantes sur `Task` (donc aussi `Sub-task`).
+
+**Demande Codex :**
+
+1. **DB / migration GRDB**
+	- Ajouter une migration additive après l'initiale :
+		- `ALTER TABLE task ADD COLUMN note TEXT;`
+	- Migration sûre pour DB existantes (run once).
+2. **Models**
+	- Mettre à jour `Task` avec `note: String?`
+	- Vérifier le mapping colonne `note` (`CodingKeys`/`Columns`).
+3. **Repositories**
+	- `TaskRepository.create/update` doivent persister `note`
+	- Les fetch/list de tasks doivent renvoyer `note`.
+4. **UI Projects**
+	- Dans `Edit Task` / `Edit Sub-task`, ajouter un champ **Notes** multiligne (`TextEditor`)
+	- Charger la note existante, autoriser l'édition, sauvegarder en DB.
+5. **Tests**
+	- Étendre les tests data-layer : créer une task avec note, relire, vérifier l'égalité stricte.
+
+**Definition of Done :**
+
+- Une note de task/sub-task est créée, modifiée et relue sans perte.
+- La migration est additive uniquement, sans régression sur les données existantes.
+- Le test data-layer dédié passe.

@@ -21,6 +21,7 @@ version: 2
 
 - `id` (PK)
 - `name`
+- `note` (TEXT nullable)
 - `sort_order`
 - `created_at`, `updated_at`
 
@@ -42,6 +43,7 @@ version: 2
 	- `NULL` = tâche
 	- non-NULL = sous-tâche
 - `name`
+- `note` (TEXT nullable)
 - `sort_order`
 - `is_archived`
 - `created_at`, `updated_at`
@@ -112,6 +114,7 @@ PRAGMA foreign_keys = ON;
 CREATE TABLE IF NOT EXISTS category (  
 id INTEGER PRIMARY KEY,  
 name TEXT NOT NULL,  
+note TEXT,  
 sort_order INTEGER NOT NULL DEFAULT 0,  
 created_at INTEGER NOT NULL,  
 updated_at INTEGER NOT NULL  
@@ -136,6 +139,7 @@ id INTEGER PRIMARY KEY,
 project_id INTEGER NOT NULL,  
 parent_task_id INTEGER,  
 name TEXT NOT NULL,  
+note TEXT,  
 sort_order INTEGER NOT NULL DEFAULT 0,  
 is_archived INTEGER NOT NULL DEFAULT 0,  
 created_at INTEGER NOT NULL,  
@@ -247,3 +251,13 @@ END;
 - **Auto-stop à la fermeture** : l’app doit faire un `UPDATE time_entry SET end_at = now` sur l’entrée active avant de quitter.
 - Cas crash : au lancement, si `end_at IS NULL`, décider une règle (ex: auto-stop à `now` et marquer `source='recovered'` ou note). (À cadrer dans doc 03 ou 05.)
 - Comme tu veux du **dynamique**, on **ne met pas** de `tag_id` dans `time_entry`. Les stats par tag se font via jointure `time_entry → task → task_tag → tag`.
+
+## 6) Migration additive (v2 -> v3)
+
+Ajout de la colonne `note` sur `task` sans modifier les colonnes existantes :
+
+```SQL
+ALTER TABLE task ADD COLUMN note TEXT;
+```
+
+Cette migration est additive et doit être exécutée une seule fois via le mécanisme de migrations (GRDB).
