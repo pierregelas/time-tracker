@@ -84,6 +84,9 @@ struct ProjectsView: View {
             .onChange(of: timerService.currentRunningEntry?.id) {
                 viewModel.runningTaskId = timerService.currentRunningEntry?.taskId
             }
+            .onReceive(NotificationCenter.default.publisher(for: .appDataDidChange)) { _ in
+                viewModel.reload(with: timerService)
+            }
             .sheet(item: $viewModel.activeEditor) { editor in
                 editorView(editor)
             }

@@ -33,6 +33,9 @@ struct TimesView: View {
             .onReceive(NotificationCenter.default.publisher(for: .settingsDidChange)) { _ in
                 viewModel.reloadForSelectedDate()
             }
+            .onReceive(NotificationCenter.default.publisher(for: .appDataDidChange)) { _ in
+                viewModel.reloadAll()
+            }
             .sheet(item: $viewModel.activeEditor) { editor in
                 TimeEntryEditorSheet(
                     editor: editor,
