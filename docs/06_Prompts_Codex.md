@@ -1,6 +1,4 @@
----
-version: 3
----
+
 ### Contexte commun (à inclure au début de chaque prompt Codex)
 
 - App **macOS only** en **SwiftUI**
@@ -278,8 +276,8 @@ version: 3
 
 **Demande Codex :**
 
-1. Ajouter une action dev “Seed Test Data” (debug-only) qui crée le dataset de `05_Acceptance_Tests.md`.
-	- inclure aussi les tags : `montage` sur Montage/Derush/Timeline, `motion` sur Motion
+1. Ajouter une action dev “Seed Test Data” (debug-only) qui crée le dataset de `05_Acceptance_Tests_v3.1.md`.
+    - inclure aussi les tags : `montage` sur Montage/Derush/Timeline, `motion` sur Motion
 2. Ajouter un écran debug minimal (si nécessaire) pour voir les IDs / running entry.
 3. Vérifier / corriger les points qui empêchent de passer tous les tests acceptance.
 
@@ -296,19 +294,19 @@ version: 3
 **Demande Codex :**
 
 1. **Migration DB (additive)** :
-	- Ajouter une migration GRDB après le schéma initial :
-		- `ALTER TABLE task ADD COLUMN note TEXT;`
-	- La migration doit s’appliquer proprement sur une DB existante (run once).
+    - Ajouter une migration GRDB après le schéma initial :
+        - `ALTER TABLE task ADD COLUMN note TEXT;`
+    - La migration doit s’appliquer proprement sur une DB existante (run once).
 2. **Models** :
-	- Mettre à jour `Task` pour inclure `note: String?` (colonne `note`).
+    - Mettre à jour `Task` pour inclure `note: String?` (colonne `note`).
 3. **Repositories** :
-	- Mettre à jour `TaskRepository` (create/update) pour persister `note`.
-	- S’assurer que list/fetch retournent `note`.
+    - Mettre à jour `TaskRepository` (create/update) pour persister `note`.
+    - S’assurer que list/fetch retournent `note`.
 4. **UI (Projects)** :
-	- Dans l’écran Edit Task / Edit Sub-task : champ “Notes” multiligne (TextEditor).
-	- Charger la note existante et sauvegarder les modifications.
+    - Dans l’écran Edit Task / Edit Sub-task : champ “Notes” multiligne (TextEditor).
+    - Charger la note existante et sauvegarder les modifications.
 5. **Tests** :
-	- Ajouter/étendre un test data-layer pour vérifier persistance et lecture de `task.note` (NOTE-01).
+    - Ajouter/étendre un test data-layer pour vérifier persistance et lecture de `task.note` (NOTE-01).
 
 **Definition of Done :**
 

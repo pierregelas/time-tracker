@@ -1,6 +1,3 @@
----
-version: 3
----
 ## 1) Navigation & structure
 
 - 3 sections principales (sidebar / tabs) :
@@ -17,14 +14,16 @@ version: 3
 ### 2.1 Contenu
 
 - Liste hiérarchique pliable :
-	- Category
-		- Project
-			- Task
-				- Sub-task (Task avec `parent_task_id`)
+    - Category
+        - Project
+            - Task
+                - Sub-task (Task avec `parent_task_id`)
 - Chaque ligne affiche :
-	- nom
-	- (optionnel) pastille couleur (Project)
-	- total sur période choisie (au minimum “Today” ou “This Week”)
+    - nom
+    - (optionnel) pastille couleur (Project)
+    - (optionnel) tags (chips) si non vide
+    - (optionnel) note de task/sub-task en 2e ligne (si non vide)
+    - total sur période choisie (au minimum “Today” ou “This Week”)
 
 ### 2.2 Actions
 
@@ -42,12 +41,13 @@ version: 3
 	- Edit (inclure **Tags**)
 	- Convert task ↔ sub-task (optionnel MVP ; sinon post-MVP)
 
-#### Tags (MVP)
+#### Tags + Notes (MVP)
 
 - Dans **Edit Task / Edit Sub-task** :
-	- Champ **Tags** (multi) en “chips”
-	- Auto-complétion depuis les tags existants
-	- Validation : refuser si le tag ne respecte pas `[A-Za-z0-9_-]+` (message clair)
+    - Champ **Tags** (multi) en “chips”
+    - Champ **Notes** (multiligne, `TextEditor`)
+    - Auto-complétion depuis les tags existants
+    - Validation : refuser si le tag ne respecte pas `[A-Za-z0-9_-]+` (message clair)
 
 #### Time tracking (Slots, 1 timer)
 

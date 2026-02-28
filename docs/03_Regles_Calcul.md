@@ -1,6 +1,3 @@
----
-version: 3
----
 ### 1) Définitions
 
 - **TimeEntry (work)** : intervalle `[start_at, end_at]` (UTC epoch seconds), lié à une task (ou sous-tâche).

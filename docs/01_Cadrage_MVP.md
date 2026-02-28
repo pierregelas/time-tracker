@@ -1,6 +1,3 @@
----
-version: 3
----
 ### 1\. Contexte
 
 - Application personnelle de time tracking inspirée de Tyme.

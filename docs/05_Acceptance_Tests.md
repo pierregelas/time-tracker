@@ -1,11 +1,10 @@
----
-version: 3
----
 ## 0) Objectif
 
 Définir un jeu de tests “humains” (et facilement automatisables plus tard) pour valider le MVP :
 
 - CRUD hiérarchie
+- Tags (dynamiques)
+- Notes (task/sub-task)
 - Timer (Slots, un seul)
 - Times (Day) + édition manuelle + validation anti-overlap
 - Breaks auto
@@ -178,35 +177,45 @@ Projet B :
 **Then** missing time = 0 (ou caché), delta = worked time (informative).
 
 ---
-## 7) Tests Tags
+## 7) Tests Notes
+
+### NOTE-01 Notes task/sub-task persistantes
+
+**When** j’édite une tâche (ou sous-tâche), je saisis une note libre puis je sauvegarde  
+**And** je relance l’app et je rouvre la même tâche  
+**Then** la note est toujours présente et identique (persistance DB OK).
+
+---
+
+## 8) Tests Tags
 
 - **TAG-01** Créer/assigner plusieurs tags à une tâche (ex : `montage`, `clientA`)
 - **TAG-02** Validation : refuser `mon tag` (espace) et `montage!` (caractère spécial)
 - **TAG-03** Stats semaine : total `montage` = somme des entrées des tâches taggées
 - **TAG-04** Dynamique : enlever `montage` de `Derush` → les stats `montage` diminuent sur l’historique
 
-
 ___
-## 8) Tests Lifecycle (auto-stop + crash recovery)
+## 9) Tests Lifecycle (auto-stop + crash recovery)
 
 ### L-01 Auto-stop à la fermeture
 
 **Given** un timer tourne depuis >10s  
 **When** je ferme l’app  
-**Then** au relancement, l’entrée active n’existe plus (end\_at non NULL) et la durée est cohérente.
+**Then** au relancement, l’entrée active n’existe plus (end_at non NULL) et la durée est cohérente.
 
 ### L-02 Crash recovery au lancement
 
 **Given** (simulate) une entrée en DB avec `end_at = NULL`  
 **When** je lance l’app  
-**Then** l’app auto-stop l’entrée (end\_at = now) et ne laisse aucun timer actif.
+**Then** l’app auto-stop l’entrée (end_at = now) et ne laisse aucun timer actif.
 
 ---
 
-## 9) Critères de réussite MVP
+## 10) Critères de réussite MVP
 
 - Tous les tests **P/T/D/B/W/L/TAG/NOTE** passent.
 - Aucune entrée `end_at NULL` persistante après fermeture/relance.
 - Breaks conformes aux seuils.
 - Overlaps manuels impossibles.
 - Totaux par tag cohérents (TAG-03/TAG-04).
+- Notes task/sub-task persistantes (NOTE-01).
