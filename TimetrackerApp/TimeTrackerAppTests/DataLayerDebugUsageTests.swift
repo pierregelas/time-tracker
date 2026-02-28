@@ -47,11 +47,12 @@ struct DataLayerDebugUsageTests {
     }
 
 
-    @Test func taskNotesArePersistedOnCreateAndFetch() throws {
+    @Test func taskNotesAndTagsArePersistedOnCreateAndFetch() throws {
         let dbQueue = try TestDatabase.makeInMemoryQueue()
         let categoryRepo = GRDBCategoryRepository(dbQueue: dbQueue)
         let projectRepo = GRDBProjectRepository(dbQueue: dbQueue)
         let taskRepo = GRDBTaskRepository(dbQueue: dbQueue)
+        let tagRepo = GRDBTagRepository(dbQueue: dbQueue)
 
         let category = try categoryRepo.create(name: "notes-cat", sortOrder: 0)
         let project = try projectRepo.create(
@@ -69,10 +70,15 @@ struct DataLayerDebugUsageTests {
             note: savedNote,
             sortOrder: 0
         )
+        let taskId = try #require(task.id)
+        try tagRepo.setTagsForTask(taskId: taskId, ["Client", "Urgent"])
 
         let fetched = try taskRepo.listByProject(projectId: try #require(project.id), includeArchived: true)
         let fetchedTask = try #require(fetched.first { $0.id == task.id })
+        let fetchedTags = try tagRepo.getTagsForTask(taskId: taskId).map(\.name).sorted()
+
         #expect(fetchedTask.note == savedNote)
+        #expect(fetchedTags == ["client", "urgent"])
     }
 
     @Test func debugSeedAndResetPopulateExpectedAcceptanceData() throws {

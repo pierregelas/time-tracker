@@ -228,6 +228,8 @@ final class TimesViewModel {
         var startAt: Int64
         var endAt: Int64
         var note: String
+        var taskTagsRaw: String
+        var taskNote: String
     }
 
     private let categoryRepository: CategoryRepository = GRDBCategoryRepository()
@@ -236,6 +238,7 @@ final class TimesViewModel {
     private let timeEntryRepository: TimeEntryRepository = GRDBTimeEntryRepository()
     private let settingsRepository: SettingsRepository = GRDBSettingsRepository()
     private let tagRepository: TagRepository = GRDBTagRepository()
+    private let taskMetadataStore = TaskMetadataStore()
 
     var selectedDate = Date()
     var workedSeconds: Int64 = 0
@@ -336,7 +339,14 @@ final class TimesViewModel {
                 updated.note = payload.note.isEmpty ? nil : payload.note
                 _ = try timeEntryRepository.updateEntry(updated)
             }
+
+            try taskMetadataStore.save(
+                taskId: payload.taskId,
+                draft: .init(tagsRaw: payload.taskTagsRaw, note: payload.taskNote)
+            )
+
             activeEditor = nil
+            try loadTaskCatalog()
             reloadForSelectedDate()
         } catch {
             setError(error)
@@ -537,6 +547,10 @@ struct TimeEntryEditorSheet: View {
     @State private var startTime: Date = Date()
     @State private var endTime: Date = Date().addingTimeInterval(3600)
     @State private var note: String = ""
+    @State private var taskTagsRaw: String = ""
+    @State private var taskNote: String = ""
+
+    private let taskMetadataStore = TaskMetadataStore()
 
     var body: some View {
         NavigationStack {
@@ -554,6 +568,10 @@ struct TimeEntryEditorSheet: View {
 
                 TextField("Note", text: $note, axis: .vertical)
                     .lineLimit(2...4)
+
+                Section("Task") {
+                    TaskMetadataEditorSection(tagsRaw: $taskTagsRaw, note: $taskNote)
+                }
             }
             .navigationTitle(editorTitle)
             .toolbar {
@@ -574,7 +592,9 @@ struct TimeEntryEditorSheet: View {
                             taskId: selectedTaskId,
                             startAt: Int64(startTime.timeIntervalSince1970),
                             endAt: Int64(endTime.timeIntervalSince1970),
-                            note: note
+                            note: note,
+                            taskTagsRaw: taskTagsRaw,
+                            taskNote: taskNote
                         )
                         onSave(payload)
                         dismiss()
@@ -583,6 +603,10 @@ struct TimeEntryEditorSheet: View {
             }
             .onAppear {
                 initializeForm()
+                loadTaskMetadata()
+            }
+            .onChange(of: selectedTaskId) {
+                loadTaskMetadata()
             }
         }
         .frame(minWidth: 460, minHeight: 300)
@@ -608,6 +632,13 @@ struct TimeEntryEditorSheet: View {
             startTime = Date(timeIntervalSince1970: TimeInterval(entry.startAt))
             endTime = Date(timeIntervalSince1970: TimeInterval(entry.endAt ?? entry.startAt))
             note = entry.note ?? ""
+        }
+    }
+
+    private func loadTaskMetadata() {
+        if let metadata = try? taskMetadataStore.load(taskId: selectedTaskId) {
+            taskTagsRaw = metadata.tagsRaw
+            taskNote = metadata.note
         }
     }
 }

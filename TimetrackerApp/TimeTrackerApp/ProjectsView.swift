@@ -86,11 +86,22 @@ struct ProjectsView: View {
     private func taskRow(_ task: Task, isSubtask: Bool) -> some View {
         HStack {
             if isSubtask { Image(systemName: "arrow.turn.down.right").foregroundStyle(.secondary) }
-            Text(task.name)
-            if viewModel.runningTaskId == task.id {
-                Label("Running", systemImage: "timer")
-                    .font(.caption)
-                    .foregroundStyle(.green)
+            VStack(alignment: .leading, spacing: 2) {
+                HStack {
+                    Text(task.name)
+                    if viewModel.runningTaskId == task.id {
+                        Label("Running", systemImage: "timer")
+                            .font(.caption)
+                            .foregroundStyle(.green)
+                    }
+                }
+                if let note = task.note?.trimmingCharacters(in: .whitespacesAndNewlines), !note.isEmpty {
+                    Text(note)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(2)
+                        .truncationMode(.tail)
+                }
             }
             Spacer()
             Button(viewModel.runningTaskId == task.id ? "Stop" : "Start") {
@@ -203,7 +214,7 @@ final class ProjectsViewModel {
     private let categoryRepository: CategoryRepository = GRDBCategoryRepository()
     private let projectRepository: ProjectRepository = GRDBProjectRepository()
     private let taskRepository: TaskRepository = GRDBTaskRepository()
-    private let tagRepository: TagRepository = GRDBTagRepository()
+    private let taskMetadataStore = TaskMetadataStore()
 
     var hierarchy: [CategoryNode] = []
     var categories: [Category] = []
@@ -334,15 +345,14 @@ final class ProjectsViewModel {
                 task.name = payload.name
                 task.projectId = payload.projectId
                 task.parentTaskId = payload.parentTaskId
-                task.note = payload.note.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : payload.note
                 _ = try taskRepository.update(task)
                 if let id = task.id {
-                    try tagRepository.setTagsForTask(taskId: id, parseTags(payload.tagsRaw))
+                    try taskMetadataStore.save(taskId: id, draft: .init(tagsRaw: payload.tagsRaw, note: payload.note))
                 }
             } else {
                 let created = try taskRepository.create(projectId: payload.projectId, parentTaskId: payload.parentTaskId, name: payload.name, note: payload.note.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : payload.note, sortOrder: 0)
                 if let id = created.id {
-                    try tagRepository.setTagsForTask(taskId: id, parseTags(payload.tagsRaw))
+                    try taskMetadataStore.save(taskId: id, draft: .init(tagsRaw: payload.tagsRaw, note: payload.note))
                 }
             }
             activeEditor = nil
@@ -366,13 +376,6 @@ final class ProjectsViewModel {
         if let timerService {
             reload(with: timerService)
         }
-    }
-
-    private func parseTags(_ raw: String) throws -> [String] {
-        let chunks = raw
-            .split(whereSeparator: { $0 == "," || $0.isWhitespace })
-            .map(String.init)
-        return try Array(Set(chunks.map { try tagRepository.normalizeTag($0) })).sorted()
     }
 
     private func setError(_ error: Error) {
@@ -486,7 +489,7 @@ struct TaskEditSheet: View {
     @State private var tagsRaw = ""
     @State private var note = ""
 
-    private let tagRepo: TagRepository = GRDBTagRepository()
+    private let taskMetadataStore = TaskMetadataStore()
     private let taskRepository: TaskRepository = GRDBTaskRepository()
 
     var body: some View {
@@ -510,12 +513,7 @@ struct TaskEditSheet: View {
                         ForEach(projects) { p in Text(p.name).tag(p.id ?? 0) }
                     }
                 }
-                TextField("Tags (comma or space separated)", text: $tagsRaw)
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Notes")
-                    TextEditor(text: $note)
-                        .frame(minHeight: 120)
-                }
+                TaskMetadataEditorSection(tagsRaw: $tagsRaw, note: $note)
             }
             .navigationTitle(title)
             .onAppear {
@@ -534,11 +532,10 @@ struct TaskEditSheet: View {
                     }
                 }
 
-                if let id = task?.id,
-                   let tags = try? tagRepo.getTagsForTask(taskId: id).map(\.name) {
-                    tagsRaw = tags.joined(separator: ", ")
+                if let metadata = try? taskMetadataStore.load(taskId: task?.id) {
+                    tagsRaw = metadata.tagsRaw
+                    note = metadata.note
                 }
-                note = task?.note ?? ""
             }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
