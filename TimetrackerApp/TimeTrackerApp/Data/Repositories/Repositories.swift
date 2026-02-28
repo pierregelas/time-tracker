@@ -17,6 +17,7 @@ protocol ProjectRepository {
 }
 
 protocol TaskRepository {
+    func list(includeArchived: Bool) throws -> [Task]
     func listByProject(projectId: Int64, includeArchived: Bool) throws -> [Task]
     func create(projectId: Int64, parentTaskId: Int64?, name: String, note: String?, sortOrder: Int) throws -> Task
     func update(_ task: Task) throws -> Task
@@ -166,6 +167,17 @@ final class GRDBTaskRepository: TaskRepository {
 
     init(dbQueue: any DatabaseWriter = AppDatabase.shared.dbQueue) {
         self.dbQueue = dbQueue
+    }
+
+    func list(includeArchived: Bool = false) throws -> [Task] {
+        try dbQueue.read { db in
+            var request = Task
+                .order(Task.Columns.projectId, Task.Columns.parentTaskId, Task.Columns.sortOrder, Task.Columns.name)
+            if !includeArchived {
+                request = request.filter(Task.Columns.isArchived == false)
+            }
+            return try request.fetchAll(db)
+        }
     }
 
     func listByProject(projectId: Int64, includeArchived: Bool = false) throws -> [Task] {

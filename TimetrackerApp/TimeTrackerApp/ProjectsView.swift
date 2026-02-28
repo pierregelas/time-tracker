@@ -18,18 +18,8 @@ struct ProjectsView: View {
                                     content: {
                                         ForEach(projectNode.tasks) { taskNode in
                                             taskRow(taskNode.task, isSubtask: false)
-
-                                            if !taskNode.subtasks.isEmpty {
-                                                DisclosureGroup(
-                                                    isExpanded: binding(for: taskNode.task.id, in: $viewModel.expandedTasks),
-                                                    content: {
-                                                        ForEach(taskNode.subtasks) { subtask in
-                                                            taskRow(subtask, isSubtask: true)
-                                                        }
-                                                    },
-                                                    label: { EmptyView() }
-                                                )
-                                                .labelsHidden()
+                                            ForEach(taskNode.subtasks) { subtask in
+                                                taskRow(subtask, isSubtask: true)
                                             }
                                         }
                                     },
@@ -221,7 +211,6 @@ final class ProjectsViewModel {
     var runningTaskId: Int64?
     var expandedCategories = Set<Int64>()
     var expandedProjects = Set<Int64>()
-    var expandedTasks = Set<Int64>()
 
     var activeEditor: Editor?
     var showError = false
@@ -472,6 +461,16 @@ struct ProjectEditSheet: View {
 }
 
 struct TaskEditSheet: View {
+    struct ParentTaskOption: Identifiable {
+        let taskId: Int64
+        let taskName: String
+        let projectId: Int64
+        let projectName: String
+
+        var id: Int64 { taskId }
+        var displayName: String { "\(projectName) • \(taskName)" }
+    }
+
     let task: Task?
     let projects: [Project]
     let projectId: Int64?
@@ -482,17 +481,34 @@ struct TaskEditSheet: View {
     @Environment(\.dismiss) private var dismiss
     @State private var name = ""
     @State private var selectedProjectId: Int64 = 0
+    @State private var selectedParentTaskId: Int64 = 0
+    @State private var parentTaskOptions: [ParentTaskOption] = []
     @State private var tagsRaw = ""
     @State private var note = ""
 
     private let tagRepo: TagRepository = GRDBTagRepository()
+    private let taskRepository: TaskRepository = GRDBTaskRepository()
 
     var body: some View {
         NavigationStack {
             Form {
                 TextField("Name", text: $name)
-                Picker("Project", selection: $selectedProjectId) {
-                    ForEach(projects) { p in Text(p.name).tag(p.id ?? 0) }
+                if isSubtaskEditor {
+                    Picker("Parent task", selection: $selectedParentTaskId) {
+                        Text("Select a parent").tag(Int64(0))
+                        ForEach(parentTaskOptions) { option in
+                            Text(option.displayName).tag(option.taskId)
+                        }
+                    }
+                    .onChange(of: selectedParentTaskId) {
+                        if let selectedParent = selectedParentOption {
+                            selectedProjectId = selectedParent.projectId
+                        }
+                    }
+                } else {
+                    Picker("Project", selection: $selectedProjectId) {
+                        ForEach(projects) { p in Text(p.name).tag(p.id ?? 0) }
+                    }
                 }
                 TextField("Tags (comma or space separated)", text: $tagsRaw)
                 VStack(alignment: .leading, spacing: 8) {
@@ -505,6 +521,19 @@ struct TaskEditSheet: View {
             .onAppear {
                 name = task?.name ?? ""
                 selectedProjectId = task?.projectId ?? projectId ?? 0
+                parentTaskOptions = loadParentTaskOptions()
+
+                if isSubtaskEditor {
+                    let defaultParentTaskId = task?.parentTaskId ?? parentTaskId
+                    if let defaultParentTaskId,
+                       parentTaskOptions.contains(where: { $0.taskId == defaultParentTaskId }) {
+                        selectedParentTaskId = defaultParentTaskId
+                    }
+                    if let selectedParent = selectedParentOption {
+                        selectedProjectId = selectedParent.projectId
+                    }
+                }
+
                 if let id = task?.id,
                    let tags = try? tagRepo.getTagsForTask(taskId: id).map(\.name) {
                     tagsRaw = tags.joined(separator: ", ")
@@ -515,10 +544,10 @@ struct TaskEditSheet: View {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
-                        onSave(.init(task: task, name: name, projectId: selectedProjectId, parentTaskId: parentTaskId, tagsRaw: tagsRaw, note: note))
+                        onSave(.init(task: task, name: name, projectId: resolvedProjectId, parentTaskId: resolvedParentTaskId, tagsRaw: tagsRaw, note: note))
                         dismiss()
                     }
-                    .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || selectedProjectId == 0)
+                    .disabled(isSaveDisabled)
                 }
                 if let onDelete {
                     ToolbarItem(placement: .destructiveAction) { Button("Delete", role: .destructive) { onDelete(); dismiss() } }
@@ -531,6 +560,70 @@ struct TaskEditSheet: View {
     private var title: String {
         if task != nil { return "Edit Task" }
         return parentTaskId == nil ? "Add Task" : "Add Sub-task"
+    }
+
+    private var isSubtaskEditor: Bool {
+        parentTaskId != nil || task?.parentTaskId != nil
+    }
+
+    private var selectedParentOption: ParentTaskOption? {
+        parentTaskOptions.first(where: { $0.taskId == selectedParentTaskId })
+    }
+
+    private var resolvedProjectId: Int64 {
+        if isSubtaskEditor {
+            return selectedParentOption?.projectId ?? selectedProjectId
+        }
+        return selectedProjectId
+    }
+
+    private var resolvedParentTaskId: Int64? {
+        guard isSubtaskEditor else { return nil }
+        return selectedParentOption?.taskId
+    }
+
+    private var isSaveDisabled: Bool {
+        let isNameEmpty = name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        if isSubtaskEditor {
+            return isNameEmpty || selectedParentOption == nil
+        }
+        return isNameEmpty || selectedProjectId == 0
+    }
+
+    private func loadParentTaskOptions() -> [ParentTaskOption] {
+        let projectById = Dictionary(uniqueKeysWithValues: projects.compactMap { project in
+            guard let projectId = project.id else { return nil }
+            return (projectId, project)
+        })
+
+        let allowedProjectIds = Set(projectById.keys)
+        guard !allowedProjectIds.isEmpty,
+              let allTasks = try? taskRepository.list(includeArchived: true) else {
+            return []
+        }
+
+        return allTasks
+            .filter { candidate in
+                guard let candidateId = candidate.id,
+                      candidate.parentTaskId == nil,
+                      allowedProjectIds.contains(candidate.projectId) else {
+                    return false
+                }
+                return candidateId != task?.id
+            }
+            .compactMap { candidate in
+                guard let candidateId = candidate.id,
+                      let project = projectById[candidate.projectId] else {
+                    return nil
+                }
+                return ParentTaskOption(taskId: candidateId, taskName: candidate.name, projectId: candidate.projectId, projectName: project.name)
+            }
+            .sorted { lhs, rhs in
+                if lhs.projectName == rhs.projectName {
+                    return lhs.taskName.localizedCaseInsensitiveCompare(rhs.taskName) == .orderedAscending
+                }
+                return lhs.projectName.localizedCaseInsensitiveCompare(rhs.projectName) == .orderedAscending
+            }
     }
 }
 
