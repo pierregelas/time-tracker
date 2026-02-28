@@ -1,5 +1,5 @@
 ---
-version: 2
+version: 3
 ---
 ### Contexte commun (à inclure au début de chaque prompt Codex)
 
@@ -285,34 +285,34 @@ version: 2
 
 **Definition of Done :**
 
-- Tous les scénarios **P/T/D/B/W/L/TAG** du doc passent.
+- Tous les scénarios **P/T/D/B/W/L/TAG/NOTE** du doc passent.
 
 ---
 
-## Prompt 11 — Task Notes (schema + models + repos + UI + tests)
+## Prompt 11 — Notes sur tâches / sous-tâches (Task Notes)
 
-**Objectif :** ajouter des notes libres et persistantes sur `Task` (donc aussi `Sub-task`).
+**Objectif :** ajouter une note (texte libre) sur chaque tâche et sous-tâche.
 
 **Demande Codex :**
 
-1. **DB / migration GRDB**
-	- Ajouter une migration additive après l'initiale :
+1. **Migration DB (additive)** :
+	- Ajouter une migration GRDB après le schéma initial :
 		- `ALTER TABLE task ADD COLUMN note TEXT;`
-	- Migration sûre pour DB existantes (run once).
-2. **Models**
-	- Mettre à jour `Task` avec `note: String?`
-	- Vérifier le mapping colonne `note` (`CodingKeys`/`Columns`).
-3. **Repositories**
-	- `TaskRepository.create/update` doivent persister `note`
-	- Les fetch/list de tasks doivent renvoyer `note`.
-4. **UI Projects**
-	- Dans `Edit Task` / `Edit Sub-task`, ajouter un champ **Notes** multiligne (`TextEditor`)
-	- Charger la note existante, autoriser l'édition, sauvegarder en DB.
-5. **Tests**
-	- Étendre les tests data-layer : créer une task avec note, relire, vérifier l'égalité stricte.
+	- La migration doit s’appliquer proprement sur une DB existante (run once).
+2. **Models** :
+	- Mettre à jour `Task` pour inclure `note: String?` (colonne `note`).
+3. **Repositories** :
+	- Mettre à jour `TaskRepository` (create/update) pour persister `note`.
+	- S’assurer que list/fetch retournent `note`.
+4. **UI (Projects)** :
+	- Dans l’écran Edit Task / Edit Sub-task : champ “Notes” multiligne (TextEditor).
+	- Charger la note existante et sauvegarder les modifications.
+5. **Tests** :
+	- Ajouter/étendre un test data-layer pour vérifier persistance et lecture de `task.note` (NOTE-01).
 
 **Definition of Done :**
 
-- Une note de task/sub-task est créée, modifiée et relue sans perte.
-- La migration est additive uniquement, sans régression sur les données existantes.
-- Le test data-layer dédié passe.
+- Build OK sur macOS.
+- Notes visibles/éditables sur Task et Sub-task.
+- Persistance OK après relance.
+- Tests NOTE-01 OK.

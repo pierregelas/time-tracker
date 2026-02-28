@@ -1,5 +1,5 @@
 ---
-version: 2
+version: 3
 ---
 ## 1) Navigation & structure
 
@@ -46,7 +46,6 @@ version: 2
 
 - Dans **Edit Task / Edit Sub-task** :
 	- Champ **Tags** (multi) en “chips”
-	- Champ **Notes** (multiligne, `TextEditor`)
 	- Auto-complétion depuis les tags existants
 	- Validation : refuser si le tag ne respecte pas `[A-Za-z0-9_-]+` (message clair)
 

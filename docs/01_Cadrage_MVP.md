@@ -1,5 +1,5 @@
 ---
-version: 2
+version: 3
 ---
 ### 1\. Contexte
 
@@ -33,8 +33,12 @@ Permettre de :
 **Données / organisation**
 
 - CRUD : catégories, projets, tâches, sous-tâches.
-- Notes sur Task/Sub-task (texte libre, persistant, éditable).
 - Déplacement simple : changer le parent (ex : tâche → autre projet) si faisable sans casse.
+
+**Notes (Task/Sub-task)**
+
+- Une tâche/sous-tâche peut avoir une **note** (texte libre, multiligne).
+- La note est **persistante** et éditable depuis l’écran d’édition de la tâche/sous-tâche.
 
 **Time tracking**
 

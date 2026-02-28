@@ -1,5 +1,5 @@
 ---
-version: 2
+version: 3
 ---
 ### 1) Définitions
 
@@ -115,10 +115,11 @@ Règle MVP recommandée :
 
 ### 9) Cas limites (MVP)
 
-- **Overlaps interdits (global)** : lors de l’ajout/édition manuelle, refuser si le nouvel intervalle intersecte **n’importe quelle autre entrée** en DB (pas seulement “dans le jour affiché”).  Règle d’intersection (en secondes, fin exclusive recommandée) : overlap si `newStart < existingEnd` ET `newEnd > existingStart`.  Si une entrée existante a `end_at NULL`, considérer `existingEnd = now` le temps de la validation.  
-- **Entrée active au lancement** (crash) :  
-- règle simple : auto-stop à `now` au lancement et marquer `source='recovered'` (ou ajouter une note).  
-(À valider dans tests `05_Acceptance_Tests.md`.)
+- **Overlaps interdits (global)** : lors de l’ajout/édition manuelle, refuser si le nouvel intervalle intersecte **n’importe quelle autre entrée** en DB (pas seulement “dans le jour affiché”).
+  - Règle d’intersection (fin exclusive recommandée) : overlap si `newStart < existingEnd` ET `newEnd > existingStart`.
+  - Si une entrée existante a `end_at NULL`, considérer `existingEnd = now` le temps de la validation.
+- **Entrée active au lancement** (crash) : règle simple : auto-stop à `now` au lancement et marquer `source='recovered'` (ou ajouter une note).
+  - (À valider dans tests `05_Acceptance_Tests.md`.)
 
 ### 10) Tags (transversal)
 
