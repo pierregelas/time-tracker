@@ -263,13 +263,25 @@ final class SettingsViewModel {
             return
         }
 
+        let hasScopedAccess = directoryURL.startAccessingSecurityScopedResource()
+        defer {
+            if hasScopedAccess {
+                directoryURL.stopAccessingSecurityScopedResource()
+            }
+        }
+
         do {
             let rows = try csvExporter.export(toDirectory: directoryURL)
             successMessage = "CSV export created successfully with \(rows) row\(rows == 1 ? "" : "s")."
             showSuccess = true
         } catch {
-            setError(error.localizedDescription)
+            setError(Self.exportErrorMessage(from: error))
         }
+    }
+
+    private static func exportErrorMessage(from error: Error) -> String {
+        let nsError = error as NSError
+        return "\(nsError.localizedDescription) (code: \(nsError.code))"
     }
 
     #if DEBUG
