@@ -591,10 +591,12 @@ struct TaskEditSheet: View {
     }
 
     private func loadParentTaskOptions() -> [ParentTaskOption] {
-        let projectById = Dictionary(uniqueKeysWithValues: projects.compactMap { project in
-            guard let projectId = project.id else { return nil }
-            return (projectId, project)
-        })
+        let projectById: [Int64: Project] = Dictionary(uniqueKeysWithValues:
+            projects.compactMap { (project: Project) -> (Int64, Project)? in
+                guard let projectId = project.id else { return nil }
+                return (projectId, project)
+            }
+        )
 
         let allowedProjectIds = Set(projectById.keys)
         guard !allowedProjectIds.isEmpty,
