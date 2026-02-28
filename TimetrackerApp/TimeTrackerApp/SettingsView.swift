@@ -1,3 +1,4 @@
+import AppKit
 import Observation
 import SwiftUI
 import GRDB
@@ -72,6 +73,20 @@ struct SettingsView: View {
                         .padding(.top, 6)
                     }
 
+                    GroupBox("Data") {
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text("Export all time entries to a CSV file.")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+
+                            Button("Export CSV…") {
+                                viewModel.exportCSV()
+                            }
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.top, 6)
+                    }
+
                     #if DEBUG
                     GroupBox("Debug") {
                         VStack(alignment: .leading, spacing: 10) {
@@ -114,6 +129,11 @@ struct SettingsView: View {
             } message: {
                 Text(viewModel.errorMessage)
             }
+            .alert("Export completed", isPresented: $viewModel.showSuccess) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(viewModel.successMessage)
+            }
             .task {
                 viewModel.load()
             }
@@ -126,6 +146,7 @@ struct SettingsView: View {
 @Observable
 final class SettingsViewModel {
     private let settingsRepository: SettingsRepository = GRDBSettingsRepository()
+    private let csvExporter: CSVExporting = CSVExportService()
 
     let orderedWeekdays = [2, 3, 4, 5, 6, 7, 1] // Monday...Sunday for UI
 
@@ -135,6 +156,8 @@ final class SettingsViewModel {
 
     var showError = false
     var errorMessage = ""
+    var showSuccess = false
+    var successMessage = ""
 
     #if DEBUG
     private let debugDataService = DebugDataService()
@@ -225,6 +248,28 @@ final class SettingsViewModel {
     private func setError(_ message: String) {
         errorMessage = message
         showError = true
+    }
+
+    func exportCSV() {
+        let panel = NSOpenPanel()
+        panel.canChooseFiles = false
+        panel.canChooseDirectories = true
+        panel.allowsMultipleSelection = false
+        panel.canCreateDirectories = true
+        panel.message = "Choose a destination folder for the CSV export."
+        panel.prompt = "Export"
+
+        guard panel.runModal() == .OK, let directoryURL = panel.url else {
+            return
+        }
+
+        do {
+            let rows = try csvExporter.export(toDirectory: directoryURL)
+            successMessage = "CSV export created successfully with \(rows) row\(rows == 1 ? "" : "s")."
+            showSuccess = true
+        } catch {
+            setError(error.localizedDescription)
+        }
     }
 
     #if DEBUG
