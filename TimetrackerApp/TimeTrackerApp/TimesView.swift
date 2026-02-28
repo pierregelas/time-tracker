@@ -139,10 +139,16 @@ struct TimesView: View {
                                     .foregroundStyle(.secondary)
                                     .monospacedDigit()
                             }
-                            if !entryView.note.isEmpty {
-                                Text(entryView.note)
+                            if !entryView.entryNote.isEmpty {
+                                Text(entryView.entryNote)
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
+                            }
+                            if !entryView.taskNote.isEmpty {
+                                Text(entryView.taskNote)
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
+                                    .lineLimit(2)
                             }
                         }
                         .contentShape(Rectangle())
@@ -188,7 +194,8 @@ final class TimesViewModel {
         let title: String
         let range: String
         let duration: String
-        let note: String
+        let entryNote: String
+        let taskNote: String
     }
 
     struct BreakItemView {
@@ -473,7 +480,8 @@ final class TimesViewModel {
                 title: pathForTask(entry.taskId),
                 range: "\(formatClock(entry.startAt)) - \(formatClock(end))",
                 duration: formatSignedDuration(max(0, end - entry.startAt), forceSign: false),
-                note: entry.note ?? ""
+                entryNote: entry.note?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "",
+                taskNote: taskById[entry.taskId]?.note?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
             )
             return .entry(row)
         }
